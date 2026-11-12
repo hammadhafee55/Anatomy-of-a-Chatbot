@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomy of a Chatbot — Muhammad Hammad Hafeez</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--p:#eceee9;--i:#14163a;--b:#a9803a;--m:#c9d3e6;--l:#cdd2ca;--g:#5b6078}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--p);color:var(--i);font:17px/1.7 'Hanken Grotesk',system-ui,sans-serif}
+h1,h2,h3{font-family:'Instrument Serif',Georgia,serif;font-weight:400;line-height:1.02;letter-spacing:-.01em}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--b);outline-offset:3px}
+header{display:flex;justify-content:space-between;align-items:baseline;padding:26px 6vw}
+header b{font:400 26px 'Instrument Serif',serif}
+header nav{display:flex;gap:28px;font-size:15px}
+header a{text-decoration:none;color:var(--g)}header a:hover{color:var(--i)}
+section{padding:96px 6vw;max-width:1240px;margin:auto}
+h1{font-size:clamp(52px,9.5vw,148px);max-width:11ch}
+h1 i{color:var(--b)}
+h2{font-size:clamp(36px,5vw,64px);margin-bottom:18px;max-width:16ch}
+h3{font-size:30px;margin-bottom:8px}
+.sub{max-width:58ch;color:var(--g);font-size:19px}
+.type{margin-top:56px;border-top:1px solid var(--i);padding-top:22px}
+.type input{width:100%;font:400 clamp(26px,4vw,48px) 'Instrument Serif',serif;background:none;border:0;border-bottom:1px solid var(--l);padding:4px 0 14px;color:var(--i)}
+.type input:focus{outline:none;border-color:var(--b)}
+.toks{display:flex;flex-wrap:wrap;gap:10px 4px;margin:26px 0 12px;min-height:56px}
+.tk{font:400 24px 'Instrument Serif',serif;border-bottom:2px solid var(--b);padding:0 6px;animation:rise .4s both;white-space:pre}
+.tk small{display:block;font:500 11px 'Hanken Grotesk';color:var(--g);text-align:center}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fine{font-size:14px;color:var(--g);max-width:70ch}
+.night{background:var(--i);color:#e4e8f6;max-width:none}
+.night>div{max-width:1240px;margin:auto}
+.night .sub{color:#a7aed0}
+.flow{display:grid;grid-template-columns:300px 1fr;gap:64px;margin-top:48px}
+.list{display:flex;flex-direction:column;border-left:1px solid #343a70}
+.list button{text-align:left;background:none;border:0;border-left:2px solid transparent;margin-left:-1px;color:#8b93c0;font:500 16px 'Hanken Grotesk';padding:10px 18px;cursor:pointer;transition:.3s}
+.list button:hover{color:#fff}
+.list button.on{color:#fff;border-color:var(--b)}
+.list button span{display:inline-block;width:26px;color:var(--b)}
+.det{min-height:380px;animation:rise .5s}
+.det h3{font-size:clamp(38px,5vw,60px);color:#fff}
+.det p{color:#c3c9e6;max-width:58ch;margin:14px 0}
+.det ul{color:#c3c9e6;padding-left:20px;max-width:58ch}.det li{margin-bottom:6px}
+.det pre{margin-top:22px;padding:18px 20px;background:#0d0f2b;border-left:2px solid var(--b);font:14px/1.7 ui-monospace,Menlo,monospace;color:#e8d9b5;overflow:auto}
+.play{margin-top:34px;background:none;border:1px solid var(--b);color:var(--b);padding:10px 24px;font:500 15px 'Hanken Grotesk';cursor:pointer;transition:.3s}
+.play:hover{background:var(--b);color:var(--i)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:72px;margin-top:44px}
+.rule{border-top:1px solid var(--i);padding-top:22px}
+.row{display:grid;grid-template-columns:90px 1fr 56px;align-items:center;gap:14px;margin:12px 0;font-size:15px}
+.row span.t{height:3px;background:var(--l);position:relative}
+.row span.t i{position:absolute;left:0;top:-2px;height:7px;background:var(--b);width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.row b{text-align:right;font-weight:500}
+input[type=range]{width:100%;accent-color:var(--b);margin:6px 0 12px}
+.btn{display:inline-block;background:var(--i);color:var(--p);border:0;padding:11px 24px;font:500 15px 'Hanken Grotesk';cursor:pointer;text-decoration:none;margin:6px 10px 0 0}
+.btn.o{background:none;color:var(--i);border:1px solid var(--i)}
+.out{font:400 26px 'Instrument Serif',serif;margin-top:16px;min-height:44px}
+.out em{font-style:normal;background:var(--m);padding:0 4px;animation:rise .3s}
+.words{display:flex;gap:18px;overflow-x:auto;padding-top:6px;margin-top:20px}
+.words button{background:none;border:0;font:400 28px 'Instrument Serif',serif;color:var(--g);cursor:pointer;white-space:nowrap;padding:0;transition:.3s}
+.words button.on{color:var(--i);border-bottom:2px solid var(--b)}
+#arcs{display:block;width:100%;height:120px;overflow:visible}
+.steps{display:flex;gap:4px;margin:16px 0}.steps i{flex:1;height:3px;background:var(--l);transition:.3s}.steps i.f{background:var(--b)}
+.qbar{display:flex;height:34px;margin:14px 0 6px;background:var(--l)}
+.qbar i{display:block;height:100%;transition:width .5s;background:var(--i)}.qbar i+i{background:var(--b)}
+.q{display:flex;justify-content:space-between;font-size:14px;color:var(--g)}
+.big{font:400 clamp(40px,6vw,76px) 'Instrument Serif',serif;word-break:break-all;line-height:1}
+table{width:100%;border-collapse:collapse;font-size:15.5px;margin-top:30px}
+th,td{text-align:left;vertical-align:top;padding:18px 20px 18px 0;border-bottom:1px solid var(--l)}
+th{font:400 28px 'Instrument Serif',serif;border-bottom:1px solid var(--i)}
+td:first-child{color:var(--g);width:15%}
+.wrap{overflow-x:auto}
+.me{display:grid;grid-template-columns:1.2fr 1fr;gap:72px;border-top:1px solid var(--i)}
+footer{padding:30px 6vw;color:var(--g);font-size:14px;max-width:1240px;margin:auto}
+@media(max-width:860px){.flow,.two,.me{grid-template-columns:1fr;gap:36px}.list{flex-direction:row;overflow-x:auto;border:0}.list button{border-left:0;border-bottom:2px solid transparent;white-space:nowrap}.list button.on{border-color:var(--b)}header nav{display:none}section{padding:64px 6vw}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><b>Anatomy of a Chatbot</b><nav><a href="#flow">The flow</a><a href="#lab">Lab</a><a href="#quantum">Quantum</a><a href="#compare">Models</a><a href="#about">Creator</a></nav></header>
+
+<section>
+<h1>How a chatbot <i>thinks</i>, one token at a time.</h1>
+<p class="sub" style="margin-top:28px">ChatGPT, Claude and Grok are large language models: neural networks that predict the next piece of text. Write anything below and watch the first step happen.</p>
+<div class="type">
+<input id="inp" aria-label="Your sentence" value="Explain quantum computing in simple words">
+<div class="toks" id="toks" aria-live="polite"></div>
+<p class="fine" id="sum"></p>
+<p class="fine">This is a simplified tokenizer for illustration. Real ones use learned vocabularies of 30,000 to 200,000 pieces.</p>
+</div>
+</section>
+
+<section class="night" id="flow"><div>
+<h2>One prompt, nine stages</h2>
+<p class="sub">Follow a single message from keystroke to answer.</p>
+<div class="flow">
+<div class="list" id="list" role="tablist"></div>
+<div><div class="det" id="det"></div><button class="play" id="auto">Play the whole journey</button></div>
+</div></div></section>
+
+<section id="lab">
+<h2>Two ideas do most of the work</h2>
+<p class="sub">Attention decides what to read. Sampling decides what to say.</p>
+<div class="two">
+<div class="rule">
+<h3>Attention</h3>
+<p class="fine">Choose a word. Arcs show how much it draws from every other word; thicker means more. Values are illustrative.</p>
+<div class="words" id="words"></div>
+<svg id="arcs" aria-hidden="true"></svg>
+<label class="fine"><input type="checkbox" id="mask"> Hide the future, as GPT-style models do</label>
+<p class="fine" id="attNote" style="margin-top:8px"></p>
+</div>
+<div class="rule">
+<h3>Temperature</h3>
+<p class="fine">After “The capital of France is”, the model scores every token. Temperature reshapes those scores.</p>
+<div id="bars" style="margin-top:12px"></div>
+<label class="fine">Temperature <b id="tv">1.0</b></label>
+<input type="range" id="temp" min="0.1" max="3" step="0.1" value="1" aria-label="Temperature">
+<button class="btn" id="samp">Sample a token</button><button class="btn o" id="rst">Clear</button>
+<div class="out" id="out"></div>
+</div>
+</div>
+<div class="rule" style="margin-top:64px">
+<h3>The generation loop</h3>
+<p class="fine">Each new token costs one pass through the whole network. A cache of keys and values saves the repeated work.</p>
+<div class="steps" id="steps"></div>
+<div class="out" id="gen"></div>
+<p class="fine" id="kv" style="margin-top:6px">Press generate.</p>
+<button class="btn" id="run">Generate</button>
+</div>
+</section>
+
+<section id="quantum" style="border-top:1px solid var(--l)">
+<h2>Where does quantum computing fit?</h2>
+<p class="sub">Today’s chatbots run on classical GPUs and TPUs. Quantum hardware plays no part in training or serving them, and no quantum method has been shown to beat GPUs at it. Research continues on hybrid systems, optimization and quantum machine learning.</p>
+<div class="two">
+<div class="rule">
+<h3>One qubit</h3>
+<p class="fine">A bit is 0 or 1. A qubit holds amplitudes for both until measured. Rotate it, then measure 100 times.</p>
+<input type="range" id="th" min="0" max="180" value="90" aria-label="Rotation angle">
+<div class="q"><span>Angle <b id="thv">90°</b></span><span>P(0) = <b id="p0">50%</b></span></div>
+<div class="qbar"><i id="b0" style="width:50%"></i><i id="b1" style="width:50%"></i></div>
+<div class="q"><span>0: <b id="c0">–</b></span><span>1: <b id="c1">–</b></span></div>
+<button class="btn" id="meas">Measure 100 times</button>
+</div>
+<div class="rule">
+<h3>Why scale is the problem</h3>
+<p class="fine">Describing n qubits takes 2ⁿ amplitudes. That power is also why simulating them classically gets impossible, and why useful quantum machines need error correction and many physical qubits.</p>
+<input type="range" id="nq" min="1" max="60" value="10" aria-label="Number of qubits">
+<div class="q"><span>Qubits <b id="nqv">10</b></span><span>Amplitudes to track</span></div>
+<div class="big" id="amp">1,024</div>
+<p class="fine" style="margin-top:12px">Quantum also threatens today’s encryption, which is why post-quantum cryptography is already being rolled out to protect traffic, chatbot traffic included.</p>
+</div>
+</div>
+</section>
+
+<section id="compare" style="border-top:1px solid var(--l)">
+<h2>Three assistants, one core idea</h2>
+<div class="wrap"><table>
+<tr><th></th><th>ChatGPT</th><th>Claude</th><th>Grok</th></tr>
+<tr><td>Maker</td><td>OpenAI</td><td>Anthropic</td><td>xAI</td></tr>
+<tr><td>Core</td><td>GPT-family decoder-only transformers</td><td>Decoder-only transformer models</td><td>Transformers; Grok-1 was a 314B-parameter Mixture-of-Experts with open weights</td></tr>
+<tr><td>Alignment</td><td>Supervised tuning with RLHF and related methods</td><td>RLHF plus Constitutional AI</td><td>Fine-tuning toward a direct, irreverent style</td></tr>
+<tr><td>Known for</td><td>Broad tool ecosystem and multimodal features</td><td>Long context, writing, coding, safety research</td><td>Integration with live posts on X</td></tr>
+</table></div>
+<p class="fine" style="margin-top:18px">Details of the newest models are proprietary, so this sticks to what each company has publicly described.</p>
+</section>
+
+<section id="about" class="me">
+<div>
+<h2>Made by Muhammad Hammad Hafeez</h2>
+<p class="sub">Data scientist, ML expert and data analyst, building analytics, machine learning and web solutions.</p>
+<p style="margin-top:22px"><a class="btn" href="https://www.linkedin.com/in/muhammad-hammad-hafeez-03945023b" target="_blank" rel="noopener">LinkedIn</a><a class="btn o" href="tel:+923476730754">+92 347 6730754</a></p>
+</div>
+<div>
+<h3>Nexoritha</h3>
+<p class="sub" style="font-size:17px;margin-top:8px">Our company delivers data analytics, AI and ML, and digital services for teams that want decisions backed by data.</p>
+<a class="btn" style="margin-top:18px" href="https://hammadhafee55.github.io/Nexoritha/" target="_blank" rel="noopener">Visit Nexoritha</a>
+</div>
+</section>
+<footer>© 2026 Muhammad Hammad Hafeez · Nexoritha</footer>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+function tok(s){const o=[];(s.match(/\s?[A-Za-z]+|\s?\d|[^\sA-Za-z\d]|\s+/g)||[]).forEach(w=>{const t=w.trim(),l=w[0]===' '?' ':'';if(/^[A-Za-z]+$/.test(t)&&t.length>7){const k=t.length>10?5:4;o.push(l+t.slice(0,k));let r=t.slice(k);while(r){o.push(r.slice(0,4));r=r.slice(4)}}else o.push(w)});return o}
+const hid=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%50257;return h};
+function render(){const v=$('#inp').value,t=tok(v);$('#toks').innerHTML=t.map((x,i)=>`<span class="tk" style="animation-delay:${Math.min(i*30,600)}ms">${x.replace(/^ /,'·')}<small>${hid(x)}</small></span>`).join('');$('#sum').textContent=`Your sentence becomes ${t.length} tokens from ${v.length} characters.`}
+$('#inp').addEventListener('input',render);render();
+const ST=[
+['Tokenization','Text is cut into tokens (words, word pieces or bytes) with an algorithm such as Byte-Pair Encoding. Each token maps to an integer ID.',['Common words are one token; rare words split into pieces.','Context limits and pricing are counted in tokens.','Special tokens mark roles and the end of a turn.'],'"Hello world" → ["Hello", " world"]\nids = [9906, 1917]'],
+['Embeddings','Every ID is looked up in a learned table and becomes a vector of thousands of numbers. Position is added too, today mostly through rotary embeddings (RoPE).',['Similar meanings sit close together.','The table is learned, not hand-written.','Without position, “dog bites man” equals “man bites dog”.'],'x = E[id]   # one vector per token\nsimilarity = a·b / (|a||b|)'],
+['Self-attention','Each token makes a query, a key and a value. Queries are compared with keys, and the softmaxed scores blend the values, so every token gathers context.',['Many heads run in parallel, each learning a different relation.','A causal mask hides future tokens.','Cost grows with the square of the length.'],'Q = X·Wq   K = X·Wk   V = X·Wv\nAttn = softmax(Q·Kᵀ / √d) · V'],
+['Transformer blocks','Attention is followed by a feed-forward network, with residual connections and normalization. The block repeats dozens of times.',['Early layers capture syntax, deeper ones abstract meaning.','Most parameters sit in the feed-forward layers.','Mixture-of-Experts models route each token to a few specialists.'],'h = h + Attention(Norm(h))\nh = h + MLP(Norm(h))   # × N layers'],
+['Logits and softmax','The final vector is multiplied by an output matrix to score every token in the vocabulary. Softmax turns scores into probabilities.',['100,000 tokens means 100,000 scores per step.','Temperature divides the scores first.'],'p_i = exp(z_i / T) / Σ exp(z_j / T)'],
+['Sampling','One token is drawn from the distribution. Greedy picks the top one; products usually sample with temperature, top-k or top-p.',['Top-k keeps the k likeliest tokens.','Top-p keeps the smallest set adding up to p.','This is why answers vary between runs.'],'next = sample(top_p(softmax(z / T), 0.9))'],
+['Loop and KV cache','The new token joins the input and everything repeats until an end-of-turn token. The prompt is read in parallel (prefill), then tokens come one by one (decode).',['The KV cache avoids recomputing earlier tokens.','Decoding is limited by memory bandwidth, so servers batch many users.','Streaming shows each token as it appears.'],'while tok != EOS:\n    tok = model(context)\n    context.append(tok)'],
+['Training','Pretraining on next-token prediction teaches language and knowledge. Fine-tuning and preference learning (RLHF, DPO, Constitutional AI) shape it into an assistant.',['Loss is cross-entropy against the true next token.','AdamW updates billions of weights across thousands of chips.','Red-teaming and evaluation precede release.'],'loss = -log p(true_next_token)\nW ← W − lr · ∇loss'],
+['Serving and tools','At runtime the system prompt, history and tool results are packed into the context. Filters, search, code execution and retrieval turn a model into a product.',['The model sees only what is in its context window.','Tool calls are structured text the app executes.','Quantization and caching cut the cost per answer.'],'context = system + history + user + tool_results\nreply = generate(context)']];
+let cur=0,tm=null;
+$('#list').innerHTML=ST.map((s,i)=>`<button role="tab"><span>${i+1}</span>${s[0]}</button>`).join('');
+function show(i){cur=i;$$('#list button').forEach((b,j)=>b.classList.toggle('on',j==i));const s=ST[i];const d=$('#det');d.style.animation='none';d.offsetHeight;d.style.animation='';d.innerHTML=`<h3>${s[0]}</h3><p>${s[1]}</p><ul>${s[2].map(x=>`<li>${x}</li>`).join('')}</ul><pre>${s[3]}</pre>`}
+function stop(){clearInterval(tm);tm=null;$('#auto').textContent='Play the whole journey'}
+$$('#list button').forEach((b,i)=>b.onclick=()=>{stop();show(i)});
+$('#auto').onclick=()=>{if(tm)return stop();$('#auto').textContent='Pause';if(cur==ST.length-1)show(0);tm=setInterval(()=>{cur<ST.length-1?show(cur+1):stop()},4500)};
+show(0);
+/* attention arcs */
+const W='The animal didn’t cross the street because it was tired'.split(' ');
+const ov={'9-1':.9,'9-10':.3,'9-8':.15,'10-9':.3,'10-1':.2,'3-1':.5,'3-4':.35,'4-3':.3,'4-1':.2,'2-1':.4};
+const M=W.map((_,i)=>W.map((_,j)=>Math.exp(-Math.abs(i-j)*.6)*.25+(i==j?.1:0)+(ov[i+'-'+j]||0)));
+let sel=9;
+$('#words').innerHTML=W.map((w,i)=>`<button>${w}</button>`).join('');
+function att(){const m=$('#mask').checked;let r=M[sel].map((v,j)=>m&&j>sel?0:v);const s=r.reduce((a,b)=>a+b,0);r=r.map(v=>v/s);const bs=$$('#words button'),box=$('#words');bs.forEach((b,j)=>b.classList.toggle('on',j==sel));
+const cx=b=>b.offsetLeft+b.offsetWidth/2;const svg=$('#arcs');svg.setAttribute('viewBox',`0 0 ${box.scrollWidth} 120`);
+svg.innerHTML=r.map((v,j)=>{if(j==sel||v<.02)return'';const a=cx(bs[sel]),b=cx(bs[j]),h=Math.min(110,30+Math.abs(a-b)*.35);return`<path d="M${a} 0C${a} ${h} ${b} ${h} ${b} 0" fill="none" stroke="#a9803a" stroke-width="${1+v*14}" stroke-linecap="round" opacity="${.35+v}"/>`}).join('');
+const t=r.map((v,j)=>[v,j]).sort((a,b)=>b[0]-a[0]).filter(x=>x[1]!=sel).slice(0,2);$('#attNote').textContent=`“${W[sel]}” draws mostly on “${W[t[0][1]]}” (${(t[0][0]*100).toFixed(0)}%) and “${W[t[1][1]]}” (${(t[1][0]*100).toFixed(0)}%).`}
+$$('#words button').forEach((b,i)=>b.onclick=()=>{sel=i;att()});$('#mask').onchange=att;
+addEventListener('load',att);addEventListener('resize',att);document.fonts&&document.fonts.ready.then(att);
+/* temperature */
+const C=[[' Paris',9],[' Lyon',5.4],[' the',4.9],[' a',4.2],[' located',3.6],[' Berlin',3]];let gen='';
+const pr=()=>{const T=+$('#temp').value,e=C.map(c=>Math.exp(c[1]/T)),s=e.reduce((a,b)=>a+b,0);return e.map(v=>v/s)};
+function bars(){const p=pr();$('#tv').textContent=(+$('#temp').value).toFixed(1);if(!$('#bars').children.length)$('#bars').innerHTML=C.map(c=>`<div class="row"><span>${c[0].trim()}</span><span class="t"><i></i></span><b></b></div>`).join('');$$('#bars .row').forEach((r,i)=>{r.querySelector('i').style.width=p[i]*100+'%';r.querySelector('b').textContent=(p[i]*100).toFixed(0)+'%'})}
+const so=()=>$('#out').innerHTML='The capital of France is'+gen;
+$('#temp').oninput=bars;
+$('#samp').onclick=()=>{const p=pr();let r=Math.random(),i=0;while(i<p.length-1&&(r-=p[i])>0)i++;gen+=`<em>${C[i][0]}</em>`;so()};
+$('#rst').onclick=()=>{gen='';so()};bars();so();
+/* loop */
+const G=[' Paris',',',' a',' city',' on',' the',' Seine','.'],P=6;let rt=null;
+$('#steps').innerHTML=G.map(()=>'<i></i>').join('');
+$('#run').onclick=()=>{if(rt)return;let k=0;$('#gen').textContent='The capital of France is';$$('#steps i').forEach(x=>x.classList.remove('f'));
+rt=setInterval(()=>{if(k>=G.length){clearInterval(rt);rt=null;$('#kv').textContent=`Finished: ${G.length} passes, and the cache holds ${P+G.length} positions at every layer.`;return}
+$$('#steps i')[k].classList.add('f');$('#gen').insertAdjacentHTML('beforeend',`<em>${G[k]}</em>`);k++;$('#kv').textContent=`Pass ${k}: new keys and values computed for one token, ${P+k-1} positions reused from the cache.`},800)};
+/* quantum */
+function q(){const t=+$('#th').value,p=Math.cos(t*Math.PI/360)**2;$('#thv').textContent=t+'°';$('#p0').textContent=(p*100).toFixed(0)+'%';$('#b0').style.width=p*100+'%';$('#b1').style.width=(1-p)*100+'%'}
+$('#th').oninput=q;
+$('#meas').onclick=()=>{const p=Math.cos(+$('#th').value*Math.PI/360)**2;let z=0;for(let i=0;i<100;i++)if(Math.random()<p)z++;$('#c0').textContent=z;$('#c1').textContent=100-z};
+function amp(){const n=+$('#nq').value;$('#nqv').textContent=n;const v=2**n;$('#amp').textContent=n<=40?v.toLocaleString('en-US'):'≈ '+v.toExponential(2).replace('e+','×10^')}
+$('#nq').oninput=amp;amp();
+</script>
+</body>
+</html>
